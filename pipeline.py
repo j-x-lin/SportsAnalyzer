@@ -13,7 +13,7 @@ import torch
 import pickle
 from uwimg import *
 
-max_frame = 216
+max_frame = 30
 
 def film_panorama():
     with open('relative_matrices_file', 'wb') as relative_matrices_file:
@@ -110,4 +110,4 @@ with open('relative_matrices_file', 'rb') as relative_matrices_file:
         
         im = combine_images(im, img, array_to_matrix(matrices_loaded[frame-1]))
 
-        save_image(im, 'temp')
+        save_image(im, 'movements')
