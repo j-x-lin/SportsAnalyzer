@@ -2,7 +2,7 @@
 
 This is a project to take in sports film footage and track players' movements throughout the video, to for example see the different routes that receivers run on any given play, or see how the defense reacts to the snap by shifting coverage.
 
-You can run this for yourself by cloning this repo, then running `python pipeline.py` in the resulting folder. The movement traces will appear in `movements.jpg`. 
+You can run this for yourself by cloning this repo, then running `python pipeline.py` in the resulting folder. You may need to uncomment the `film_panorama()` call if the `relative_matrices_file` has been modified, or you're trying to execute the program on a different clip. The movement traces will appear in `movements.jpg`. 
 
 # Data #
 
