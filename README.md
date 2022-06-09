@@ -2,6 +2,8 @@
 
 This is a project to take in sports film footage and track players' movements throughout the video, to for example see the different routes that receivers run on any given play, or see how the defense reacts to the snap by shifting coverage.
 
+You can run this for yourself by cloning this repo, then running `python pipeline.py` in the resulting folder. The movement traces will appear in `movements.jpg`. 
+
 # Data #
 
 I created a dataset by taking All-22 film footage from NFL games at both college and professional levels. For each video, I only kept the portions where you can see all 22 players on the field, and split each video up into frames.
