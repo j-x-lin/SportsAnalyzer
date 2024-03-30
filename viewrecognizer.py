@@ -2,7 +2,7 @@ from PIL import Image
 
 import torch
 import torchvision
-import torchvision.transforms as transforms
+from torchvision.transforms import v2
 import torch.utils.data as data
 import numpy as np
 import matplotlib.pyplot as plt
@@ -21,16 +21,18 @@ PATH = './models/viewrecognizer.pt'
 # Just normalization for validation
 
 data_transforms = {
-    'train': transforms.Compose([
-        transforms.Resize((64, 36)),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize((0.48016809, 0.52537006, 0.34176871), (0.02471182, 0.06024992, 0.03274162))
+    'train': v2.Compose([
+        v2.ToImage(),
+        v2.Resize((64, 36)),
+        v2.RandomHorizontalFlip(),
+        v2.ToDtype(torch.float32),
+        v2.Normalize((0.48016809 * 255, 0.52537006 * 255, 0.34176871 * 255), (0.02471182 * 255, 0.06024992 * 255, 0.03274162 * 255))
     ]),
-    'val': transforms.Compose([
-        transforms.Resize((64, 36)),
-        transforms.ToTensor(),
-        transforms.Normalize((0.48016809, 0.52537006, 0.34176871), (0.02471182, 0.06024992, 0.03274162))
+    'val': v2.Compose([
+        v2.ToImage(),
+        v2.Resize((64, 36)),
+        v2.ToDtype(torch.float32),
+        v2.Normalize((0.48016809 * 255, 0.52537006 * 255, 0.34176871 * 255), (0.02471182 * 255, 0.06024992 * 255, 0.03274162 * 255))
     ]),
 }
 
@@ -94,10 +96,10 @@ class Net(nn.Module):
         super().__init__()
         self.conv1 = nn.Conv2d(3, 10, 5).to(device)
         self.pool1 = nn.MaxPool2d(2, 2).to(device)
-        self.conv2 = nn.Conv2d(10, 54, 7).to(device)
+        self.conv2 = nn.Conv2d(10, 56, 7).to(device)
         self.pool2 = nn.MaxPool2d(2, 2).to(device)
-        self.conv3 = nn.Conv2d(54, 160, 5).to(device)
-        self.fc1 = nn.Linear(8 * 1 * 160, 36).to(device)
+        self.conv3 = nn.Conv2d(56, 144, 5).to(device)
+        self.fc1 = nn.Linear(8 * 1 * 144, 36).to(device)
         self.fc2 = nn.Linear(36, 2).to(device)
 
     def forward(self, x):

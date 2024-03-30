@@ -4,7 +4,8 @@ import numpy as np
 
 from PIL import Image
 
-import torchvision.transforms as transforms
+import torch
+from torchvision.transforms import v2
 
 
 def max_frame_count():
@@ -28,13 +29,13 @@ def max_frame_count():
 # current mean: [0.49867509 0.59165666 0.37727006]
 # current STD: [0.01694534 0.03099744 0.01660505]
 def calculate_mean_std():
-    data_transforms = transforms.Compose([
-        transforms.ToTensor()
+    data_transforms = v2.Compose([
+        v2.ToImage(),
+        v2.ToDtype(torch.float32)
     ])
 
     means = np.zeros(3)
     nVar = np.zeros(3)
-
     num_images = max_frame_count() + 1
     for i in range(num_images):
         image = data_transforms(Image.open('data/frames/%d.jpg' % i)).numpy()
