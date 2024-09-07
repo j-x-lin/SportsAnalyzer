@@ -339,12 +339,12 @@ matrix RANSAC(match *m, int n, float thresh, int k, int cutoff)
             if (!Hb.data) continue;
             best = model_inliers(Hb, m, n, thresh);
             if (best > cutoff) {
-                printf("%d\n", best);
+                printf("Best error: %d\n", best);
                 return Hb;
             }
         }
     }
-    printf("%d\n", best);
+    printf("Best error: %d\n", best);
     return Hb;
 }
 
