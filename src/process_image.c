@@ -6,7 +6,6 @@
 
 float get_pixel(image im, int x, int y, int c)
 {
-    // TODO Fill this in
     if (x < 0) {
         x = 0;
     } else if (x >= im.w) {
@@ -24,8 +23,6 @@ float get_pixel(image im, int x, int y, int c)
 
 void set_pixel(image im, int x, int y, int c, float v)
 {
-    // TODO Fill this in
-    // TODO Fill this in
     if (x < 0 || x >= im.w) {
         return;
     }
@@ -41,7 +38,6 @@ void set_pixel(image im, int x, int y, int c, float v)
 image copy_image(image im)
 {
     image copy = make_image(im.w, im.h, im.c);
-    // TODO Fill this in
     for (int i = 0; i < im.w * im.h * im.c; i++)
     {
         copy.data[i] = im.data[i];
@@ -76,7 +72,6 @@ image rgb_to_grayscale(image im)
 
     int c_size = im.w * im.h;
 
-    // TODO Fill this in
     for (int i = 0; i < c_size; i++)
     {
         gray.data[i] = 0.299 * im.data[i] + 0.587 * im.data[i+c_size] + 0.114 * im.data[i+2*c_size];
@@ -87,7 +82,6 @@ image rgb_to_grayscale(image im)
 
 void shift_image(image im, int c, float v)
 {
-    // TODO Fill this in
     int c_size = im.w * im.h;
 
     for (int i = c_size * c; i < c_size * c + c_size; i++)
@@ -98,7 +92,6 @@ void shift_image(image im, int c, float v)
 
 void clamp_image(image im)
 {
-    // TODO Fill this in
     for (int i = 0; i < im.w * im.h * im.c; i++)
     {
         if (im.data[i] < 0) {
@@ -109,8 +102,27 @@ void clamp_image(image im)
     }
 }
 
+void cutoff(image im, float cutoff)
+{
+    for (int i = 0; i < im.w; i++) {
+        for (int j = 0; j < im.h; j++) {
+            int white = 1;
 
-// These might be handy
+            for (int k = 0; k < im.c; k++) {
+                if (get_pixel(im, i, j, k) < cutoff) {
+                    white = 0;
+                }
+            }
+
+            if (white == 0) {
+                for (int k = 0; k < im.c; k++) {
+                    set_pixel(im, i, j, k, 0);
+                }
+            }
+        }
+    }
+}
+
 float three_way_max(float a, float b, float c)
 {
     return (a > b) ? ( (a > c) ? a : c) : ( (b > c) ? b : c) ;

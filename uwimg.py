@@ -4,7 +4,7 @@ import numpy as np
 import math
 import random
 
-lib = CDLL(os.path.join(os.path.dirname(__file__), "libuwimg.so"), RTLD_GLOBAL)
+lib = CDLL("./libuwimg.so", RTLD_GLOBAL, winmode=0)
 
 def c_array(ctype, values):
     arr = (ctype*len(values))()
@@ -75,6 +75,10 @@ matrix_make = lib.matrix_make
 matrix_make.argtypes = [c_int, c_int]
 matrix_make.restype = MATRIX
 
+transpose_matrix = lib.transpose_matrix
+transpose_matrix.argtypes = [MATRIX]
+transpose_matrix.restype = MATRIX
+
 
 add_image = lib.add_image
 add_image.argtypes = [IMAGE, IMAGE]
@@ -118,6 +122,10 @@ feature_normalize.restype = None
 clamp_image = lib.clamp_image
 clamp_image.argtypes = [IMAGE]
 clamp_image.restype = None
+
+cutoff = lib.cutoff
+cutoff.argtypes = [IMAGE, c_float]
+cutoff.restype = None
 
 hsv_to_rgb = lib.hsv_to_rgb
 hsv_to_rgb.argtypes = [IMAGE]
