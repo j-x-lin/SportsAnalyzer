@@ -62,7 +62,8 @@ image draw_matches(image a, image b, match *matches, int n, int inliers)
 {
     image both = both_images(a, b);
     int i,j;
-    for(i = 0; i < n; ++i){
+//    for(i = 0; i < n; ++i){
+    for (i = 0; i < inliers; ++i) {
         int bx = matches[i].p.x; 
         int ex = matches[i].q.x; 
         int by = matches[i].p.y;
@@ -208,7 +209,6 @@ point project_point(matrix H, point p)
 // returns: L2 distance between them.
 float point_distance(point p, point q)
 {
-    // TODO: should be a quick one.
     return sqrt(pow(p.x - q.x, 2) + pow(p.y - q.y, 2));
 }
 
@@ -317,7 +317,7 @@ matrix RANSAC(match *m, int n, float thresh, int k, int cutoff)
 {
     int e;
     int best = 0;
-    matrix Hb = make_translation_homography(256, 0);
+    matrix Hb = make_identity_homography();
     // TODO: fill in RANSAC algorithm.
     // for k iterations:
     //     shuffle the matches
@@ -346,6 +346,45 @@ matrix RANSAC(match *m, int n, float thresh, int k, int cutoff)
     }
     printf("Best error: %d\n", best);
     return Hb;
+}
+
+// Applies a projective transformation to an image, cuts off anything outside the boundaries of the original image.
+// image im: image to project.
+// matrix H: homography from image a coordinates to image b coordinates.
+// returns: im projected using H
+image project_image(image im, matrix H)
+{
+    int i,j,k;
+    image im_p = make_image(im.w, im.h, im.c);
+
+    // Initialize blank image
+    for(k = 0; k < im_p.c; ++k) {
+        for(j = 0; j < im_p.h; ++j) {
+            for (i = 0; i < im_p.w; ++i) {
+                set_pixel(im_p, i, j, k, 1);
+            }
+        }
+    }
+
+    // Loop over the points in the new image and see if projection to im's coordinates falls
+    // within the bounds of image im. If so, use bilinear interpolation to estimate the
+    // value of im at that projection, then fill in image im_p
+    for (j = 0; j < im.h; ++j) {
+        for (i = 0; i < im.w; ++i) {
+            point p = project_point(H, make_point(i, j));
+            if (p.x >= 0 && p.y >= 0 && p.x < im.w && p.y < im.h){
+                for(k = 0; k < im_p.c; ++k){
+                    double val = bilinear_interpolate(im, p.x, p.y, k);
+
+                    if (val != 1) {
+                        set_pixel(im_p, i, j, k, val);
+                    }
+                }
+            }
+        }
+    }
+
+    return im_p;
 }
 
 // Stitches two images together using a projective transformation.
@@ -472,7 +511,7 @@ image panorama_image(image a, image b, float sigma, float thresh, int nms, float
 // int cutoff: RANSAC inlier cutoff. Typical: 10-100
 matrix relative_homography(image a, image b, float sigma, float thresh, int nms, float inlier_thresh, int iters, int cutoff)
 {
-    srand(10);
+//    srand(10);
     int an = 0;
     int bn = 0;
     int mn = 0;
@@ -486,14 +525,6 @@ matrix relative_homography(image a, image b, float sigma, float thresh, int nms,
 
     // Run RANSAC to find the homography
     matrix H = RANSAC(m, mn, inlier_thresh, iters, cutoff);
-
-    if (0) {
-        // Mark corners and matches between images, turn this off!!
-        mark_corners(a, ad, an);
-        mark_corners(b, bd, bn);
-        image inlier_matches = draw_inliers(a, b, H, m, mn, inlier_thresh);
-        save_image(inlier_matches, "inliers");
-    }
 
     free_descriptors(ad, an);
     free_descriptors(bd, bn);

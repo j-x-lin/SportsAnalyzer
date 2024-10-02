@@ -108,6 +108,7 @@ image find_and_draw_matches(image a, image b, float sigma, float thresh, int nms
 void detect_and_draw_corners(image im, float sigma, float thresh, int nms);
 int model_inliers(matrix H, match *m, int n, float thresh);
 image combine_images(image a, image b, matrix H);
+image project_image(image im, matrix H);
 match *match_descriptors(descriptor *a, int an, descriptor *b, int bn, int *mn);
 descriptor *harris_corner_detector(image im, float sigma, float thresh, int nms, int *n);
 image panorama_image(image a, image b, float sigma, float thresh, int nms, float inlier_thresh, int iters, int cutoff);
