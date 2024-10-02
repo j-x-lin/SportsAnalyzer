@@ -79,6 +79,9 @@ transpose_matrix = lib.transpose_matrix
 transpose_matrix.argtypes = [MATRIX]
 transpose_matrix.restype = MATRIX
 
+invert_matrix = lib.matrix_invert
+invert_matrix.argtypes = [MATRIX]
+invert_matrix.restype = MATRIX
 
 add_image = lib.add_image
 add_image.argtypes = [IMAGE, IMAGE]
@@ -235,6 +238,10 @@ find_and_draw_matches.restype = IMAGE
 combine_images = lib.combine_images
 combine_images.argtypes = [IMAGE, IMAGE, MATRIX]
 combine_images.restype = IMAGE
+
+project_image = lib.project_image
+project_image.argtypes = [IMAGE, MATRIX]
+project_image.restype = IMAGE
 
 panorama_image_lib = lib.panorama_image
 panorama_image_lib.argtypes = [IMAGE, IMAGE, c_float, c_float, c_int, c_float, c_int, c_int]
