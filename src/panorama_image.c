@@ -447,7 +447,7 @@ image combine_images(image a, image b, matrix H)
                 for(k = 0; k < c.c; ++k){
                     double val = bilinear_interpolate(b, p.x, p.y, k);
                     
-                    if (val != 1) {
+                    if (val != 0) {
                         set_pixel(c, i-dx, j-dy, k, val);
                     }
                 }

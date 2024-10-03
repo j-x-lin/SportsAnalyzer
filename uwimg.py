@@ -130,6 +130,10 @@ cutoff = lib.cutoff
 cutoff.argtypes = [IMAGE, c_float]
 cutoff.restype = None
 
+crop_blank = lib.crop_blank
+crop_blank.argtypes = [IMAGE, c_float]
+crop_blank.restype = IMAGE
+
 hsv_to_rgb = lib.hsv_to_rgb
 hsv_to_rgb.argtypes = [IMAGE]
 hsv_to_rgb.restype = None
