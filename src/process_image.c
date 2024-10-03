@@ -123,6 +123,54 @@ void cutoff(image im, float cutoff)
     }
 }
 
+// float blank_color: what value a "blank" pixel will have (usually either 0 or 1)
+image crop_blank(image im, float blank_color) {
+    int left = im.w;
+    int right = 0;
+    int up = im.h;
+    int down = 0;
+
+    // find the non-empty pixels
+    for (int i = 0; i < im.w; i++) {
+        for (int j = 0; j < im.h; j++) {
+            for (int k = 0; k < im.c; k++) {
+                if (get_pixel(im, i, j, k) != blank_color) {
+                    if (i < left) {
+                        left = i;
+                    }
+
+                    if (i > right) {
+                        right = i;
+                    }
+
+                    if (j < up) {
+                        up = j;
+                    }
+
+                    if (j > down) {
+                        down = j;
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+
+    image cropped = make_image(right-left, down-up, im.c);
+
+    // populate shifted pixels
+    for (int i = left; i < right; i++) {
+        for (int j = up; j < down; j++) {
+            for (int k = 0; k < im.c; k++) {
+                set_pixel(cropped, i-left, j-up, k, get_pixel(im, i, j, k));
+            }
+        }
+    }
+
+    return cropped;
+}
+
 float three_way_max(float a, float b, float c)
 {
     return (a > b) ? ( (a > c) ? a : c) : ( (b > c) ? b : c) ;
