@@ -247,7 +247,7 @@ int model_inliers(matrix H, match *m, int n, float thresh)
 // int n: number of elements in matches.
 void randomize_matches(match *m, int n)
 {
-    // TODO: implement Fisher-Yates to shuffle the array.
+    // Fisher-Yates to shuffle the array.
     int i;
     for(i = n-1; i > 0; --i){
         int ind = rand()%i;
@@ -272,7 +272,8 @@ matrix compute_homography(match *matches, int n)
         double xp = matches[i].q.x;
         double y  = matches[i].p.y;
         double yp = matches[i].q.y;
-        // TODO: fill in the matrices M and b.
+
+        // fill in the matrices M and b.
         M.data[i*2][0] = x;
         M.data[i*2][1] = y;
         M.data[i*2][2] = 1;
@@ -296,7 +297,7 @@ matrix compute_homography(match *matches, int n)
     if(!a.data) return none;
 
     matrix H = make_matrix(3, 3);
-    // TODO: fill in the homography H based on the result in a.
+    // fill in the homography H from a.
     H.data[0][0] = a.data[0][0]; H.data[0][1] = a.data[1][0]; H.data[0][2] = a.data[2][0];
     H.data[1][0] = a.data[3][0]; H.data[1][1] = a.data[4][0]; H.data[1][2] = a.data[5][0];
     H.data[2][0] = a.data[6][0]; H.data[2][1] = a.data[7][0]; H.data[2][2] = 1;
@@ -318,11 +319,10 @@ matrix RANSAC(match *m, int n, float thresh, int k, int cutoff)
     int e;
     int best = 0;
     matrix Hb = make_identity_homography();
-    // TODO: fill in RANSAC algorithm.
     // for k iterations:
-    //     shuffle the matches
-    //     compute a homography with a few matches (how many??)
-    //     if new homography is better than old (how can you tell?):
+    //     shuffle matches
+    //     compute a homography with a few matches
+    //     if new homography is better than old:
     //         compute updated homography using all inliers
     //         remember it and how good it is
     //         if it's better than the cutoff:
@@ -376,7 +376,7 @@ image project_image(image im, matrix H)
                 for(k = 0; k < im_p.c; ++k){
                     double val = bilinear_interpolate(im, p.x, p.y, k);
 
-                    if (val != 1) {
+                    if (val != 0) {
                         set_pixel(im_p, i, j, k, val);
                     }
                 }
@@ -455,6 +455,9 @@ image combine_images(image a, image b, matrix H)
         }
     }
 
+    H.data[0][2] += dx;
+    H.data[1][2] += dy;
+
     return c;
 }
 
@@ -501,7 +504,7 @@ image panorama_image(image a, image b, float sigma, float thresh, int nms, float
     return comb;
 }
 
-// Create a panoramam between two images.
+// Create a panorama between two images.
 // image a, b: images to stitch together.
 // float sigma: gaussian for harris corner detector. Typical: 2
 // float thresh: threshold for corner/no corner. Typical: 1-5
