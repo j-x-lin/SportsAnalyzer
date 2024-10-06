@@ -2,11 +2,11 @@
 
 This is a project to take in sports film footage and track players' movements throughout the video, to for example see the different routes that receivers run on any given play, or see how the defense reacts to the snap by shifting coverage.
 
-You can run this for yourself by cloning this repo, then running `python pipeline.py` in the resulting folder. You may need to uncomment the `film_panorama()` call if the `relative_matrices_file` has been modified, or you're trying to execute the program on a different clip. The movement traces will appear in `movements.jpg`. 
+# How to Run #
+After cloning this repo, upload any video footage **as an MP4 file** to the `/data/videos` folder, and add the video name to the `/data/index` file (e.g. if your video is `play.mp4` then add in "play" on a new line in the index file). To run the whole workflow, run `python main.py` in the project directory.
 
 # Data #
-
-I created a dataset by taking All-22 film footage from NFL games at both college and professional levels. For each video, I only kept the portions where you can see all 22 players on the field, and split each video up into frames.
+These models were trained on a sample of all-22 footage from NFL and college games.
 
 # Approach #
 Initially, I tried to run simple edge detection to see if I could come up with clear outlines of the players in order to run object detection. However, there were a number of issues with this approach. The first main issue was that basic edge detection would often wrongfully detect "noise" objects such as number markings on the field, TV drones, etc., which we do not want to keep track of as the play progresses. The other, more significant issue was that unlike TV footage, All-22 film footage comes from a camera high above the field such that it can capture all 22 players in most frames. As a result, the footage is not very "clear", so there is a lot of noise which interferes with edge detection.
@@ -21,8 +21,8 @@ https://youtu.be/7v0H1B1-O8s
 # Future Directions #
 Here are some possible future directions I hope to take this project:
 
-1. Finetune the YOLOv5 network to distinguish between players and referees
+1. Finetune the YOLOv5 network to distinguish between players and referees or train my own object detection model to do this task.
 
 2. Improve the recognition by using a different color for different players, and keep track of different players between consecutive frames
 
-3. Improve the homography calculation even further 
+3. Improve the organization of information in the movements graph, such as coloring all presnap motion the same color range, then using different colors for postsnap motion.

@@ -17,14 +17,15 @@ def video_to_frames(video_path, count):
     return count
 
 
-count = 0
+def split_frames():
+    count = 0
 
-f = open("data/index", "r")
-while True:
-    line = f.readline()
+    f = open("data/index", "r")
+    while True:
+        line = f.readline()
 
-    if not line:
-        break
+        if not line:
+            break
 
-    count = video_to_frames('data/videos/' + line + '.mp4', count)
-    print('Done with', line)
+        count = video_to_frames('data/videos/' + line + '.mp4', count)
+        print('Done with', line)
