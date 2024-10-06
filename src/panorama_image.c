@@ -376,7 +376,7 @@ image project_image(image im, matrix H)
                 for(k = 0; k < im_p.c; ++k){
                     double val = bilinear_interpolate(im, p.x, p.y, k);
 
-                    if (val != 0) {
+                    if (val != 1) {
                         set_pixel(im_p, i, j, k, val);
                     }
                 }
