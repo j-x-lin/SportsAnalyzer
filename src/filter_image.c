@@ -57,16 +57,15 @@ static float convolve_pixel(image im, image filter, int x, int y, int im_c, int 
 
 image convolve_image(image im, image filter, int preserve)
 {
-    // TODO
     image new_image;
     
     if (filter.c == 1) {
         if (preserve == 1) {
             // apply filter separately to each channel
             new_image = make_image(im.w, im.h, im.c);
-            for (int i = 0; i < im.w; i++)
+            for (int j = 0; j < im.h; j++)
             {
-                for (int j = 0; j < im.h; j++)
+                for (int i = 0; i < im.w; i++)
                 {
                     for (int k = 0; k < im.c; k++)
                     {
@@ -78,9 +77,9 @@ image convolve_image(image im, image filter, int preserve)
         } else {
             // apply filter to each channel, then sum
             new_image = make_image(im.w, im.h, 1);
-            for (int i = 0; i < im.w; i++)
+            for (int j = 0; j < im.h; j++)
             {
-                for (int j = 0; j < im.h; j++)
+                for (int i = 0; i < im.w; i++)
                 {
                     float val = 0;
 
@@ -97,9 +96,9 @@ image convolve_image(image im, image filter, int preserve)
         if (preserve == 1) {
             // apply filter, keeping each channel separate
             new_image = make_image(im.w, im.h, im.c);
-            for (int i = 0; i < im.w; i++)
+            for (int j = 0; j < im.h; j++)
             {
-                for (int j = 0; j < im.h; j++)
+                for (int i = 0; i < im.w; i++)
                 {
                     for (int k = 0; k < im.c; k++)
                     {
@@ -112,9 +111,9 @@ image convolve_image(image im, image filter, int preserve)
         } else {
             // apply filter, then sum
             new_image = make_image(im.w, im.h, im.c);
-            for (int i = 0; i < im.w; i++)
+            for (int j = 0; j < im.h; j++)
             {
-                for (int j = 0; j < im.h; j++)
+                for (int i = 0; i < im.w; i++)
                 {
                     float val = 0;
                     for (int k = 0; k < im.c; k++)
