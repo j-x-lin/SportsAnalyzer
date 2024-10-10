@@ -113,7 +113,7 @@ image project_image(image im, matrix H);
 match *match_descriptors(descriptor *a, int an, descriptor *b, int bn, int *mn);
 descriptor *harris_corner_detector(image im, float sigma, float thresh, int nms, int *n);
 image panorama_image(image a, image b, float sigma, float thresh, int nms, float inlier_thresh, int iters, int cutoff);
-matrix relative_homography(image a, image b, float sigma, float thresh, int nms, float inlier_thresh, int iters, int cutoff);
+matrix relative_homography(image a, image b, float sigma, float thresh, int nms, float inlier_thresh, int iters, int cutoff, int verbosity);
 
 // Matrix library functions
 matrix identity_homography();

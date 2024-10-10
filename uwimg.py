@@ -252,7 +252,7 @@ panorama_image_lib.argtypes = [IMAGE, IMAGE, c_float, c_float, c_int, c_float, c
 panorama_image_lib.restype = IMAGE
 
 relative_homography_lib = lib.relative_homography
-relative_homography_lib.argtypes = [IMAGE, IMAGE, c_float, c_float, c_int, c_float, c_int, c_int]
+relative_homography_lib.argtypes = [IMAGE, IMAGE, c_float, c_float, c_int, c_float, c_int, c_int, c_int]
 relative_homography_lib.restype = MATRIX
 
 draw_flow = lib.draw_flow
@@ -274,8 +274,8 @@ optical_flow_webcam.restype = None
 def panorama_image(a, b, sigma=2, thresh=5, nms=3, inlier_thresh=2, iters=10000, cutoff=30):
     return panorama_image_lib(a, b, sigma, thresh, nms, inlier_thresh, iters, cutoff)
 
-def relative_homography(a, b, sigma=2, thresh=5, nms=3, inlier_thresh=2, iters=10000, cutoff=30):
-    return relative_homography_lib(a, b, sigma, thresh, nms, inlier_thresh, iters, cutoff)
+def relative_homography(a, b, sigma=2, thresh=5, nms=3, inlier_thresh=2, iters=10000, cutoff=30, verbosity=0):
+    return relative_homography_lib(a, b, sigma, thresh, nms, inlier_thresh, iters, cutoff, verbosity)
 
 train_model = lib.train_model
 train_model.argtypes = [MODEL, DATA, c_int, c_int, c_double, c_double, c_double]

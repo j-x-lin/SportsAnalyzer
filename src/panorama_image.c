@@ -313,8 +313,9 @@ matrix compute_homography(match *matches, int n)
 // float thresh: inlier/outlier distance threshold.
 // int k: number of iterations to run.
 // int cutoff: inlier cutoff to exit early.
+// int verbose: if non-zero, turns on debug print statements
 // returns: matrix representing most common homography between matches.
-matrix RANSAC(match *m, int n, float thresh, int k, int cutoff)
+matrix RANSAC(match *m, int n, float thresh, int k, int cutoff, int verbose)
 {
     int e;
     int best = 0;
@@ -339,12 +340,17 @@ matrix RANSAC(match *m, int n, float thresh, int k, int cutoff)
             if (!Hb.data) continue;
             best = model_inliers(Hb, m, n, thresh);
             if (best > cutoff) {
-                printf("Best error: %d\n", best);
+                if (verbose != 0) {
+                    printf("Best error: %d\n", best);
+                }
                 return Hb;
             }
         }
     }
-    printf("Best error: %d\n", best);
+    if (verbose != 0) {
+        printf("Best error: %d\n", best);
+    }
+
     return Hb;
 }
 
@@ -484,7 +490,7 @@ image panorama_image(image a, image b, float sigma, float thresh, int nms, float
     match *m = match_descriptors(ad, an, bd, bn, &mn);
 
     // Run RANSAC to find the homography
-    matrix H = RANSAC(m, mn, inlier_thresh, iters, cutoff);
+    matrix H = RANSAC(m, mn, inlier_thresh, iters, cutoff, 0);
     print_matrix(H);
 
     if (0) {
@@ -512,7 +518,8 @@ image panorama_image(image a, image b, float sigma, float thresh, int nms, float
 // float inlier_thresh: threshold for RANSAC inliers. Typical: 2-5
 // int iters: number of RANSAC iterations. Typical: 1,000-50,000
 // int cutoff: RANSAC inlier cutoff. Typical: 10-100
-matrix relative_homography(image a, image b, float sigma, float thresh, int nms, float inlier_thresh, int iters, int cutoff)
+// int verbosity: If non-zero, enables debug print statements
+matrix relative_homography(image a, image b, float sigma, float thresh, int nms, float inlier_thresh, int iters, int cutoff, int verbosity)
 {
 //    srand(10);
     int an = 0;
@@ -527,7 +534,7 @@ matrix relative_homography(image a, image b, float sigma, float thresh, int nms,
     match *m = match_descriptors(ad, an, bd, bn, &mn);
 
     // Run RANSAC to find the homography
-    matrix H = RANSAC(m, mn, inlier_thresh, iters, cutoff);
+    matrix H = RANSAC(m, mn, inlier_thresh, iters, cutoff, verbosity);
 
     free_descriptors(ad, an);
     free_descriptors(bd, bn);
