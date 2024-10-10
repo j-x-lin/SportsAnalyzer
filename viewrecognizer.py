@@ -1,7 +1,6 @@
 from PIL import Image
 
 import torch
-import torchvision
 from torchvision.transforms import v2
 import torch.utils.data as data
 import numpy as np
@@ -10,31 +9,31 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from utils import max_frame_count
+from sportsanalyzer_utils import max_frame_count
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(device)
+print('Using', device)
 
 PATH = './models/viewrecognizer.pt'
 
 # Data augmentation and normalization for training
 # Just normalization for validation
-
-data_transforms = {
-    'train': v2.Compose([
-        v2.ToImage(),
-        v2.Resize((64, 36)),
-        v2.RandomHorizontalFlip(),
-        v2.ToDtype(torch.float32),
-        v2.Normalize((0.48016809 * 255, 0.52537006 * 255, 0.34176871 * 255), (0.02471182 * 255, 0.06024992 * 255, 0.03274162 * 255))
-    ]),
-    'val': v2.Compose([
-        v2.ToImage(),
-        v2.Resize((64, 36)),
-        v2.ToDtype(torch.float32),
-        v2.Normalize((0.48016809 * 255, 0.52537006 * 255, 0.34176871 * 255), (0.02471182 * 255, 0.06024992 * 255, 0.03274162 * 255))
-    ]),
-}
+def get_view_recognizer_data_transforms():
+    return {
+        'train': v2.Compose([
+            v2.ToImage(),
+            v2.Resize((64, 36)),
+            v2.RandomHorizontalFlip(),
+            v2.ToDtype(torch.float32),
+            v2.Normalize((0.48016809 * 255, 0.52537006 * 255, 0.34176871 * 255), (0.02471182 * 255, 0.06024992 * 255, 0.03274162 * 255))
+        ]),
+        'val': v2.Compose([
+            v2.ToImage(),
+            v2.Resize((64, 36)),
+            v2.ToDtype(torch.float32),
+            v2.Normalize((0.48016809 * 255, 0.52537006 * 255, 0.34176871 * 255), (0.02471182 * 255, 0.06024992 * 255, 0.03274162 * 255))
+        ]),
+    }
 
 
 class Imageset(data.Dataset):
@@ -80,7 +79,7 @@ class Imageset(data.Dataset):
             self.data = torch.tensor(np.array(data)).to(device)
 
     def __getitem__(self, index):
-        image = data_transforms['train'](Image.open('data/frames/%d.jpg' % self.data[index]))
+        image = get_view_recognizer_data_transforms()['train'](Image.open('data/frames/%d.jpg' % self.data[index]))
 
         if self.is_train:
             return image.to(device), self.labels[index].to(device)
@@ -132,7 +131,7 @@ def get_data():
     return trainloader, testloader
 
 
-def get_model():
+def get_view_recognizer_model():
     net = Net()
     net.load_state_dict(torch.load(PATH))
 
@@ -250,11 +249,11 @@ def train_model(model):
     return acc_train_arr, acc_val_arr, loss_train_arr, loss_val_arr, epochs
 
 
+# acc_train_arr, acc_val_arr, loss_train_arr, loss_val_arr, epochs = train_model(get_view_recognizer_model())
 # net = Net()
 # convNet = ConvNet(5, 200, 2)
 # noHiddenNet = NoHiddenNet()
 # oneHiddenNet = OneHiddenNet(1536)
-acc_train_arr, acc_val_arr, loss_train_arr, loss_val_arr, epochs = train_model(get_model())
 
 # def test_model(model):
 #     criterion = nn.CrossEntropyLoss()

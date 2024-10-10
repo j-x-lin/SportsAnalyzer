@@ -22,14 +22,6 @@ object_detection_model = YOLO('yolo11s.pt')
 
 
 FRAME_PATH = 'data/frames/%d.jpg'
-# matrices_file = 'relative_matrices_file'
-
-# # # best so far: 3185
-# play_number = 0
-# view = 0
-#
-# min_frame = 571
-# max_frame = 1171
 
 
 def image_ops(image):
@@ -53,18 +45,26 @@ def scale_homography(homography, s):
 # compute homography between curr_im and next_im
 # s: scale factor to scale both images down (for efficiency, but at a slightly reduced accuracy)
 def compute_homography(curr_im, next_im, s=1):
-    small_curr = bilinear_resize(curr_im, int(curr_im.w / s), int(curr_im.h / s))
-    small_next = bilinear_resize(next_im, int(next_im.w / s), int(next_im.h / s))
+    if s == 1:
+        return relative_homography(curr_im, next_im, sigma=2, thresh=2, nms=3, inlier_thresh=3, iters=50000, cutoff=100)
+    else:
+        small_curr = bilinear_resize(curr_im, int(curr_im.w / s), int(curr_im.h / s))
+        small_next = bilinear_resize(next_im, int(next_im.w / s), int(next_im.h / s))
 
-    h_new = relative_homography(small_curr, small_next, sigma=2, thresh=2, nms=3, inlier_thresh=3, iters=50000,
-                                cutoff=100)
+        h_new = relative_homography(small_curr, small_next, sigma=2, thresh=2, nms=3, inlier_thresh=3, iters=50000,
+                                    cutoff=100)
 
-    # scale up homography by s
-    scale_homography(h_new, s)
-    return h_new
+        # scale up homography by s
+        scale_homography(h_new, s)
+
+        free_image(small_curr)
+        free_image(small_next)
+
+        return h_new
 
 
-def film_panorama(verbose=False, save_intermediate_images=False):
+# min_frame, max_frame: the frames to start at and end at (INCLUSIVE)
+def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
     im = load_image(FRAME_PATH % min_frame)
 
     H = identity_homography()
@@ -82,7 +82,7 @@ def film_panorama(verbose=False, save_intermediate_images=False):
         next_im = load_image(FRAME_PATH % frame)
         next_im = image_ops(next_im)
 
-        if save_intermediate_images:
+        if save_debug_images:
             im1copy = copy_image(curr_im)
             im2copy = copy_image(next_im)
 
@@ -108,7 +108,7 @@ def film_panorama(verbose=False, save_intermediate_images=False):
 
         curr_H = matrix_mult(H_new, h_adjust)
 
-        if save_intermediate_images:
+        if save_debug_images:
             im1_final = project_image(im1_transformed, invert_matrix(h_adjust))
             save_image(im1_final, 'tst/%d_transformed' % frame)
 
@@ -180,8 +180,8 @@ def film_panorama(verbose=False, save_intermediate_images=False):
 
         im = combine_images(im, obj_dots, curr_H)
 
-        # if save_intermediate_images:
-        save_image(im, 'data/movements/%d' % frame)
+        if save_debug_images:
+            save_image(im, 'tst/%d_movement' % frame)
 
         if verbose:
             print('movement calculation time:', datetime.datetime.now() - object_detection_time)
@@ -190,7 +190,4 @@ def film_panorama(verbose=False, save_intermediate_images=False):
         free_image(im1_transformed)
         free_image(obj_dots)
 
-
-    # save_image(im, 'data/movements/%d' % max_frame)
-    return curr_H
-
+    return im
