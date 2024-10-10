@@ -3,7 +3,7 @@
 This is a project to take in sports film footage and track players' movements throughout the video, to for example see the different routes that receivers run on any given play, or see how the defense reacts to the snap by shifting coverage.
 
 # How to Run #
-After cloning this repo, upload any video footage **as an MP4 file** to the `/data/videos` folder, and add the video name to the `/data/index` file (e.g. if your video is `play.mp4` then add in "play" on a new line in the index file). To run the whole workflow, run `python main.py` in the project directory.
+After cloning this repo, upload any video footage **as an MP4 file** to the `/data/videos` folder, and add the video name to the `/data/index` file (e.g. if your video is `play.mp4` then add in "play" on a new line in the index file). To run the whole workflow, first run `make` to compile the c library, then run `python main.py` in the project directory.
 
 # Data #
 These models were trained on a sample of all-22 footage from NFL and college games.
