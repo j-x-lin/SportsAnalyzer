@@ -148,7 +148,7 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
                     x = int((bounding_boxes[i][0] + bounding_boxes[i][2]) / 2)
                     y = int((bounding_boxes[i][1] + bounding_boxes[i][3]) / 2)
 
-                    color = (frame / max_frame) * 5
+                    color = ((frame-min_frame) / (max_frame-min_frame)) * 5
 
                     for i in range(-3, 3):
                         for j in range(-3, 3):

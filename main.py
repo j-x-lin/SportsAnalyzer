@@ -17,8 +17,7 @@ print('Using', device)
 view_recognizer_data_transforms = get_view_recognizer_data_transforms()['val']
 view_recognizer_model = get_view_recognizer_model()
 
-# TODO: uncomment later
-# split_frames()
+split_frames()
 
 play_number = 1
 view = 0

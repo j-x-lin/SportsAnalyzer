@@ -20,7 +20,7 @@ def video_to_frames(video_path, count):
 def split_frames():
     count = 0
 
-    f = open("data/index", "r")
+    f = open("data/videos/index", "r")
     while True:
         line = f.readline()
 
