@@ -11,11 +11,11 @@ import datetime
 from uwimg import *
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print('Using', device)
+
+if __name__ == '__main__':
+    print('Using', device)
 
 object_detection_model = YOLO('yolo11s.pt')
-
-
 FRAME_PATH = 'data/frames/%d.jpg'
 
 

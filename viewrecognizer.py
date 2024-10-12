@@ -12,7 +12,9 @@ import torch.optim as optim
 from sportsanalyzer_utils import max_frame_count
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print('Using', device)
+
+if __name__ == '__main__':
+    print('Using', device)
 
 PATH = './models/viewrecognizer.pt'
 

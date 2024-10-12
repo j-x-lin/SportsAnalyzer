@@ -1,5 +1,5 @@
 import numpy as np
-import concurrent.futures
+import multiprocessing
 
 import torch
 from PIL import Image
@@ -11,12 +11,6 @@ from viewrecognizer import get_view_recognizer_model, get_view_recognizer_data_t
 from uwimg import *
 from sportsanalyzer_utils import max_frame_count
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print('Using', device)
-
-view_recognizer_data_transforms = get_view_recognizer_data_transforms()['val']
-view_recognizer_model = get_view_recognizer_model()
-
 
 def analyze_play(start_frame, end_frame, play_number):
     movements = film_panorama(start_frame, end_frame, False, False)
@@ -26,32 +20,42 @@ def analyze_play(start_frame, end_frame, play_number):
     print(play_number, 'from', start_frame, 'to', end_frame, 'DONE')
 
 
-play_number = 1
-view = 0
-start_frame = 0
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-thread_list = []
+if __name__ == '__main__':
+    print('Using', device)
 
-split_frames()
+    view_recognizer_data_transforms = get_view_recognizer_data_transforms()['val']
+    view_recognizer_model = get_view_recognizer_model()
 
-with concurrent.futures.ThreadPoolExecutor(max_workers=8) as threadpool:
-    for frame in range(max_frame_count() + 1):
-        image = Image.open('data/frames/%d.jpg' % frame)
-        image = view_recognizer_data_transforms(image)
+    play_number = 1
+    view = 0
+    start_frame = 0
 
-        data = torch.tensor(np.array([image])).to(device)
-        result = torch.argmax(view_recognizer_model(data)).item()
+    thread_list = []
 
-        if not result == view:
-            threadpool.submit(analyze_play, start_frame, frame-1, play_number)
+    split_frames()
 
-            view = result
-            play_number += 1
-            start_frame = frame
+    with multiprocessing.Pool(processes=8) as threadpool:
+        for frame in range(max_frame_count() + 1):
+            image = Image.open('data/frames/%d.jpg' % frame)
+            image = view_recognizer_data_transforms(image)
 
-    print('Total plays detected:', play_number)
+            data = torch.tensor(np.array([image])).to(device)
+            result = torch.argmax(view_recognizer_model(data)).item()
 
-    threadpool.shutdown()
+            if not result == view:
+                threadpool.apply_async(analyze_play, start_frame, frame-1, play_number)
 
-    # best so far: 3185
-    print('DONE')
+                view = result
+                play_number += 1
+                start_frame = frame
+
+        threadpool.close()
+
+        # best so far: 3185
+        print('Total plays detected:', play_number)
+
+        threadpool.join()
+
+        print('DONE')
