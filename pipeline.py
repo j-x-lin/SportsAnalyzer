@@ -1,19 +1,14 @@
 import numpy as np
-import pandas as pd
-from pandas import cut
 
 import cv2
 from PIL import Image
 
 import torch
-from torchvision.transforms import v2
 from ultralytics import YOLO
 
 import datetime
-import pickle
 
 from uwimg import *
-from sportsanalyzer_utils import max_frame_count
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print('Using', device)
@@ -68,7 +63,6 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
     im = load_image(FRAME_PATH % min_frame)
 
     H = identity_homography()
-    curr_H = H
 
     if verbose:
         matrix_print(H)
@@ -101,12 +95,12 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
             print('x')
             matrix_print(h_new)
 
-        H_new = matrix_mult(curr_H, h_new)
+        H_new = matrix_mult(H, h_new)
 
         im1_transformed = project_image(curr_im, invert_matrix(h_new))
         h_adjust = compute_homography(im1_transformed, next_im, s=1)
 
-        curr_H = matrix_mult(H_new, h_adjust)
+        H = matrix_mult(H_new, h_adjust)
 
         if save_debug_images:
             im1_final = project_image(im1_transformed, invert_matrix(h_adjust))
@@ -117,9 +111,14 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
             matrix_print(h_adjust)
 
             print('=')
-            matrix_print(curr_H)
+            matrix_print(H)
 
+        free_image(im1_transformed)
         free_image(curr_im)
+
+        free_matrix(h_new)
+        free_matrix(h_adjust)
+
         curr_im = next_im
 
         homography_time = datetime.datetime.now()
@@ -178,7 +177,7 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
         if verbose:
             print('object detection time:', object_detection_time - homography_time)
 
-        im = combine_images(im, obj_dots, curr_H)
+        im = combine_images(im, obj_dots, H)
 
         if save_debug_images:
             save_image(im, 'tst/%d_movement' % frame)
@@ -187,7 +186,6 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
             print('movement calculation time:', datetime.datetime.now() - object_detection_time)
             print(frame, 'completed, total time:', datetime.datetime.now() - start_time)
 
-        free_image(im1_transformed)
         free_image(obj_dots)
 
     return im

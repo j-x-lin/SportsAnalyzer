@@ -59,6 +59,10 @@ class ARRAY:
 (LINEAR, LOGISTIC, RELU, LRELU, SOFTMAX) = range(5)
 
 # copied methods from matrix.h library
+free_matrix = lib.free_matrix
+free_matrix.argtypes = [MATRIX]
+free_matrix.restype = None
+
 matrix_mult = lib.matrix_mult
 matrix_mult.argtypes = [MATRIX, MATRIX]
 matrix_mult.restype = MATRIX

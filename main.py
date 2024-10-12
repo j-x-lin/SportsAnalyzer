@@ -1,7 +1,7 @@
 import numpy as np
+import concurrent.futures
 
 import torch
-
 from PIL import Image
 
 from framesplitter import split_frames
@@ -17,30 +17,41 @@ print('Using', device)
 view_recognizer_data_transforms = get_view_recognizer_data_transforms()['val']
 view_recognizer_model = get_view_recognizer_model()
 
-split_frames()
+
+def analyze_play(start_frame, end_frame, play_number):
+    movements = film_panorama(start_frame, end_frame, False, False)
+    save_image(movements, 'data/movements/%d' % play_number)
+    free_image(movements)
+
+    print(play_number, 'from', start_frame, 'to', end_frame, 'DONE')
+
 
 play_number = 1
 view = 0
 start_frame = 0
 
-for frame in range(max_frame_count() + 1):
-    image = Image.open('data/frames/%d.jpg' % frame)
-    image = view_recognizer_data_transforms(image)
+thread_list = []
 
-    data = torch.tensor(np.array([image])).to(device)
-    result = torch.argmax(view_recognizer_model(data)).item()
+split_frames()
 
-    if not result == view:
-        end_frame = frame-1
-        im = film_panorama(start_frame, end_frame, False, False)
-        save_image(im, 'data/movements/%d' % play_number)
-        free_image(im)
+with concurrent.futures.ThreadPoolExecutor(max_workers=8) as threadpool:
+    for frame in range(max_frame_count() + 1):
+        image = Image.open('data/frames/%d.jpg' % frame)
+        image = view_recognizer_data_transforms(image)
 
-        print(play_number, 'from', start_frame, 'to', end_frame, 'DONE')
+        data = torch.tensor(np.array([image])).to(device)
+        result = torch.argmax(view_recognizer_model(data)).item()
 
-        view = result
-        play_number += 1
-        start_frame = frame
+        if not result == view:
+            threadpool.submit(analyze_play, start_frame, frame-1, play_number)
 
-# best so far: 3185
-print('Total plays detected:', play_number)
+            view = result
+            play_number += 1
+            start_frame = frame
+
+    print('Total plays detected:', play_number)
+
+    threadpool.shutdown()
+
+    # best so far: 3185
+    print('DONE')
