@@ -45,7 +45,7 @@ if __name__ == '__main__':
             result = torch.argmax(view_recognizer_model(data)).item()
 
             if not result == view:
-                threadpool.apply_async(analyze_play, start_frame, frame-1, play_number)
+                threadpool.apply_async(analyze_play, [start_frame, frame-1, play_number])
 
                 view = result
                 play_number += 1
