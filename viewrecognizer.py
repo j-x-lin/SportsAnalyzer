@@ -18,24 +18,25 @@ if __name__ == '__main__':
 
 PATH = './models/viewrecognizer.pt'
 
+
 # Data augmentation and normalization for training
 # Just normalization for validation
-def get_view_recognizer_data_transforms():
-    return {
-        'train': v2.Compose([
+def get_view_recognizer_data_transforms(train=False):
+    if train:
+        return v2.Compose([
             v2.ToImage(),
             v2.Resize((64, 36)),
             v2.RandomHorizontalFlip(),
             v2.ToDtype(torch.float32),
             v2.Normalize((0.48016809 * 255, 0.52537006 * 255, 0.34176871 * 255), (0.02471182 * 255, 0.06024992 * 255, 0.03274162 * 255))
-        ]),
-        'val': v2.Compose([
+        ])
+    else:
+        return v2.Compose([
             v2.ToImage(),
             v2.Resize((64, 36)),
             v2.ToDtype(torch.float32),
             v2.Normalize((0.48016809 * 255, 0.52537006 * 255, 0.34176871 * 255), (0.02471182 * 255, 0.06024992 * 255, 0.03274162 * 255))
-        ]),
-    }
+        ])
 
 
 class Imageset(data.Dataset):
@@ -81,7 +82,7 @@ class Imageset(data.Dataset):
             self.data = torch.tensor(np.array(data)).to(device)
 
     def __getitem__(self, index):
-        image = get_view_recognizer_data_transforms()['train'](Image.open('data/frames/%d.jpg' % self.data[index]))
+        image = get_view_recognizer_data_transforms(train=True)(Image.open('data/frames/%d.jpg' % self.data[index]))
 
         if self.is_train:
             return image.to(device), self.labels[index].to(device)

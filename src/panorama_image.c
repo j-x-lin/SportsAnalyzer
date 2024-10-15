@@ -334,6 +334,7 @@ matrix RANSAC(match *m, int n, float thresh, int k, int cutoff, int verbose)
         matrix H = compute_homography(m, 4);
         if (!H.data) continue;
         int inliers = model_inliers(H, m, n, thresh);
+        free_matrix(H);
         if (inliers > best){
             if (Hb.data) free_matrix(Hb);
             Hb = compute_homography(m, inliers);

@@ -25,7 +25,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if __name__ == '__main__':
     print('Using', device)
 
-    view_recognizer_data_transforms = get_view_recognizer_data_transforms()['val']
+    view_recognizer_data_transforms = get_view_recognizer_data_transforms()
     view_recognizer_model = get_view_recognizer_model()
 
     play_number = 1
@@ -36,7 +36,7 @@ if __name__ == '__main__':
 
     split_frames()
 
-    with multiprocessing.Pool(processes=8) as threadpool:
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()-1) as threadpool:
         for frame in range(max_frame_count() + 1):
             image = Image.open('data/frames/%d.jpg' % frame)
             image = view_recognizer_data_transforms(image)
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
         threadpool.close()
 
-        # best so far: 3185
+        # best so far: 3012
         print('Total plays detected:', play_number)
 
         threadpool.join()

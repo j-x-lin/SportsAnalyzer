@@ -11,7 +11,6 @@ import datetime
 from uwimg import *
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 if __name__ == '__main__':
     print('Using', device)
 
@@ -41,26 +40,74 @@ def scale_homography(homography, s):
 # s: scale factor to scale both images down (for efficiency, but at a slightly reduced accuracy)
 def compute_homography(curr_im, next_im, s=1):
     if s == 1:
-        return relative_homography(curr_im, next_im, sigma=2, thresh=2, nms=3, inlier_thresh=3, iters=50000, cutoff=100)
+        h = relative_homography(curr_im, next_im, sigma=2, thresh=2, nms=3, inlier_thresh=3, iters=50000, cutoff=100)
+        return h
     else:
         small_curr = bilinear_resize(curr_im, int(curr_im.w / s), int(curr_im.h / s))
         small_next = bilinear_resize(next_im, int(next_im.w / s), int(next_im.h / s))
 
-        h_new = relative_homography(small_curr, small_next, sigma=2, thresh=2, nms=3, inlier_thresh=3, iters=50000,
+        h = relative_homography(small_curr, small_next, sigma=2, thresh=2, nms=3, inlier_thresh=3, iters=50000,
                                     cutoff=100)
 
         # scale up homography by s
-        scale_homography(h_new, s)
+        scale_homography(h, s)
 
         free_image(small_curr)
         free_image(small_next)
 
-        return h_new
+        return h
+
+
+def draw_objects(image_path, color):
+    obj_dots = make_image(1920, 1080, 3)
+
+    for k in range(3):
+        for j in range(1080):
+            for i in range(1920):
+                set_pixel(obj_dots, i, j, k, 0)
+
+    # Inference
+    results = object_detection_model(source=image_path, stream=True)
+
+    # Results
+    for result in results:
+        # print(detected_object)
+        bounding_boxes = result.boxes.xyxy
+
+        for i in range(len(bounding_boxes)):
+            if result.boxes.cls[i] == 0:
+                x = int((bounding_boxes[i][0] + bounding_boxes[i][2]) / 2)
+                y = int((bounding_boxes[i][1] + bounding_boxes[i][3]) / 2)
+
+                for i in range(-2, 2):
+                    for j in range(-2, 2):
+                        if color < 0.2:
+                            set_pixel(obj_dots, x + i, y + j, 0, 1)
+                            set_pixel(obj_dots, x + i, y + j, 1, 0)
+                            set_pixel(obj_dots, x + i, y + j, 2, color)
+                        elif color < 0.4:
+                            set_pixel(obj_dots, x + i, y + j, 0, 2 - color)
+                            set_pixel(obj_dots, x + i, y + j, 1, 0)
+                            set_pixel(obj_dots, x + i, y + j, 2, 1)
+                        elif color < 0.6:
+                            set_pixel(obj_dots, x + i, y + j, 0, 0)
+                            set_pixel(obj_dots, x + i, y + j, 1, color - 2)
+                            set_pixel(obj_dots, x + i, y + j, 2, 1)
+                        elif color < 0.8:
+                            set_pixel(obj_dots, x + i, y + j, 0, 0)
+                            set_pixel(obj_dots, x + i, y + j, 1, 1)
+                            set_pixel(obj_dots, x + i, y + j, 2, 4 - color)
+                        else:
+                            set_pixel(obj_dots, x + i, y + j, 0, color - 4)
+                            set_pixel(obj_dots, x + i, y + j, 1, 1)
+                            set_pixel(obj_dots, x + i, y + j, 2, 0)
+
+    return obj_dots
 
 
 # min_frame, max_frame: the frames to start at and end at (INCLUSIVE)
 def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
-    im = load_image(FRAME_PATH % min_frame)
+    combined_movement = load_image(FRAME_PATH % min_frame)
 
     H = identity_homography()
 
@@ -91,22 +138,23 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
 
         h_new = compute_homography(curr_im, next_im, s=4)
 
-        if verbose:
-            print('x')
-            matrix_print(h_new)
-
-        H_new = matrix_mult(H, h_new)
-
         im1_transformed = project_image(curr_im, invert_matrix(h_new))
+
         h_adjust = compute_homography(im1_transformed, next_im, s=1)
 
-        H = matrix_mult(H_new, h_adjust)
+        H = matrix_mult(H, h_new)
+        H = matrix_mult(H, h_adjust)
 
         if save_debug_images:
             im1_final = project_image(im1_transformed, invert_matrix(h_adjust))
             save_image(im1_final, 'tst/%d_transformed' % frame)
 
+            free_image(im1_final)
+
         if verbose:
+            print('x')
+            matrix_print(h_new)
+
             print('x')
             matrix_print(h_adjust)
 
@@ -116,76 +164,35 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
         free_image(im1_transformed)
         free_image(curr_im)
 
+        curr_im = next_im
+
         free_matrix(h_new)
         free_matrix(h_adjust)
-
-        curr_im = next_im
 
         homography_time = datetime.datetime.now()
 
         if verbose:
             print('homography calculation time:', homography_time - start_time)
 
-        obj_dots = make_image(1920, 1080, 3)
-
-        for k in range(3):
-            for j in range(1080):
-                for i in range(1920):
-                    set_pixel(obj_dots, i, j, k, 0)
-
-        # Inference
-        img = FRAME_PATH % frame  # or file, Path, PIL, OpenCV, numpy, list
-        results = object_detection_model.predict(source=img, stream=True)
-
-        # Results
-        for result in results:
-            # print(detected_object)
-            bounding_boxes = result.boxes.xyxy
-
-            for i in range(len(bounding_boxes)):
-                if result.boxes.cls[i] == 0:
-                    x = int((bounding_boxes[i][0] + bounding_boxes[i][2]) / 2)
-                    y = int((bounding_boxes[i][1] + bounding_boxes[i][3]) / 2)
-
-                    color = ((frame-min_frame) / (max_frame-min_frame)) * 5
-
-                    for i in range(-3, 3):
-                        for j in range(-3, 3):
-                            if color < 1:
-                                set_pixel(obj_dots, x + i, y + j, 0, 1)
-                                set_pixel(obj_dots, x + i, y + j, 1, 0)
-                                set_pixel(obj_dots, x + i, y + j, 2, color)
-                            elif color < 2:
-                                set_pixel(obj_dots, x + i, y + j, 0, 2-color)
-                                set_pixel(obj_dots, x + i, y + j, 1, 0)
-                                set_pixel(obj_dots, x + i, y + j, 2, 1)
-                            elif color < 3:
-                                set_pixel(obj_dots, x + i, y + j, 0, 0)
-                                set_pixel(obj_dots, x + i, y + j, 1, color-2)
-                                set_pixel(obj_dots, x + i, y + j, 2, 1)
-                            elif color < 4:
-                                set_pixel(obj_dots, x + i, y + j, 0, 0)
-                                set_pixel(obj_dots, x + i, y + j, 1, 1)
-                                set_pixel(obj_dots, x + i, y + j, 2, 4-color)
-                            else:
-                                set_pixel(obj_dots, x + i, y + j, 0, color-4)
-                                set_pixel(obj_dots, x + i, y + j, 1, 1)
-                                set_pixel(obj_dots, x + i, y + j, 2, 0)
+        objects = draw_objects(FRAME_PATH % frame, (frame-min_frame) / (max_frame-min_frame))
 
         object_detection_time = datetime.datetime.now()
 
         if verbose:
             print('object detection time:', object_detection_time - homography_time)
 
-        im = combine_images(im, obj_dots, H)
+        updated_movement = combine_images(combined_movement, objects, H)
+
+        free_image(objects)
+        free_image(combined_movement)
+
+        combined_movement = updated_movement
 
         if save_debug_images:
-            save_image(im, 'tst/%d_movement' % frame)
+            save_image(combined_movement, 'tst/%d_movement' % frame)
 
         if verbose:
             print('movement calculation time:', datetime.datetime.now() - object_detection_time)
             print(frame, 'completed, total time:', datetime.datetime.now() - start_time)
 
-        free_image(obj_dots)
-
-    return im
+    return combined_movement
