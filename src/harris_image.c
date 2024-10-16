@@ -130,12 +130,13 @@ image structure_matrix(image im, float sigma)
         }
     }
 
-    S = smooth_image(S, sigma);
+    image smoothed = smooth_image(S, sigma);
 
+    free_image(S);
     free_image(Ix);
     free_image(Iy);
 
-    return S;
+    return smoothed;
 }
 
 // Estimate the cornerness of each pixel given a structure matrix S.

@@ -40,8 +40,7 @@ def scale_homography(homography, s):
 # s: scale factor to scale both images down (for efficiency, but at a slightly reduced accuracy)
 def compute_homography(curr_im, next_im, s=1):
     if s == 1:
-        h = relative_homography(curr_im, next_im, sigma=2, thresh=2, nms=3, inlier_thresh=3, iters=50000, cutoff=100)
-        return h
+        return relative_homography(curr_im, next_im, sigma=2, thresh=2, nms=3, inlier_thresh=3, iters=50000, cutoff=100)
     else:
         small_curr = bilinear_resize(curr_im, int(curr_im.w / s), int(curr_im.h / s))
         small_next = bilinear_resize(next_im, int(next_im.w / s), int(next_im.h / s))
@@ -117,7 +116,7 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
     curr_im = load_image(FRAME_PATH % min_frame)
     curr_im = image_ops(curr_im)
 
-    for frame in range(min_frame + 1, max_frame+1):
+    for frame in range(min_frame, max_frame+1):
         start_time = datetime.datetime.now()
 
         next_im = load_image(FRAME_PATH % frame)
@@ -174,7 +173,11 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
         if verbose:
             print('homography calculation time:', homography_time - start_time)
 
-        objects = draw_objects(FRAME_PATH % frame, (frame-min_frame) / (max_frame-min_frame))
+        color = 0
+        if not max_frame == min_frame:
+            color = (frame - min_frame) / (max_frame-min_frame)
+
+        objects = draw_objects(FRAME_PATH % frame, color)
 
         object_detection_time = datetime.datetime.now()
 

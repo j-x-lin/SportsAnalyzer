@@ -13,6 +13,7 @@ from sportsanalyzer_utils import max_frame_count
 
 
 def analyze_play(start_frame, end_frame, play_number):
+    print(play_number, 'from', start_frame, 'to', end_frame, 'starting')
     movements = film_panorama(start_frame, end_frame, False, False)
     save_image(movements, 'data/movements/%d' % play_number)
     free_image(movements)
@@ -31,13 +32,12 @@ if __name__ == '__main__':
     play_number = 1
     view = 0
     start_frame = 0
-
-    thread_list = []
+    max_frame = max_frame_count()
 
     split_frames()
 
     with multiprocessing.Pool(processes=multiprocessing.cpu_count()-1) as threadpool:
-        for frame in range(max_frame_count() + 1):
+        for frame in range(max_frame + 1):
             image = Image.open('data/frames/%d.jpg' % frame)
             image = view_recognizer_data_transforms(image)
 
@@ -50,6 +50,8 @@ if __name__ == '__main__':
                 view = result
                 play_number += 1
                 start_frame = frame
+
+        threadpool.apply_async(analyze_play, [start_frame, max_frame, play_number])
 
         threadpool.close()
 
