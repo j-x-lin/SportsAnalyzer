@@ -104,6 +104,8 @@ def draw_objects(image_path, color):
     return obj_dots
 
 
+from memory_profiler import profile
+@profile
 # min_frame, max_frame: the frames to start at and end at (INCLUSIVE)
 def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
     combined_movement = load_image(FRAME_PATH % min_frame)
@@ -197,5 +199,7 @@ def film_panorama(min_frame, max_frame, verbose=False, save_debug_images=False):
         if verbose:
             print('movement calculation time:', datetime.datetime.now() - object_detection_time)
             print(frame, 'completed, total time:', datetime.datetime.now() - start_time)
+
+    free_image(curr_im)
 
     return combined_movement

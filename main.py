@@ -13,7 +13,6 @@ from sportsanalyzer_utils import max_frame_count
 
 
 def analyze_play(start_frame, end_frame, play_number):
-    print(play_number, 'from', start_frame, 'to', end_frame, 'starting')
     movements = film_panorama(start_frame, end_frame, False, False)
     save_image(movements, 'data/movements/%d' % play_number)
     free_image(movements)
